@@ -16,17 +16,13 @@ class Intro:
     instance attributes:
     intro_image: pygame image: image to be shown in the front cover
     menu_image: pygame image: image to be shown in the menu
-    music: pygame sound: sound to be played during the intro
     """
 
-    def __init__(self, cover_image=None, menu_image=None, music=None):
+    def __init__(self, cover_image=None, menu_image=None):
         """cover_image: filename for an image file
-        cover_music: filename for a music file
         screen_shape: tuple of two ints (shape of the screen)"""
         self.intro_image = pygame.image.load(cover_image)
         self.menu_image = pygame.image.load(menu_image)
-        self.music = pygame.mixer.Sound(music)
-        self.music.set_volume(0.3)
         self.color = (0, 0, 0)
         self.style = pygame.font.SysFont('comicsans', 70)
         self.text = self.style.render('Select Track', False, self.color)
@@ -40,7 +36,7 @@ class Intro:
         height_factor = (0.9 * sh) / h
         sf = min(width_factor, height_factor)
         self.intro_image = pygame.transform.smoothscale(self.intro_image, (int(w * sf), int(h * sf)))
-        self.music.play(loops=-1)
+
         _, _, w, h = self.intro_image.get_rect()
         keep_menu = True
         tic = time.time()
@@ -56,7 +52,6 @@ class Intro:
             screen.blit(self.intro_image, ((sw - w) // 2, (sh - h) // 2))
             pygame.display.update()
             clock.tick(20)
-        self.music.stop()
         return
 
     def run_menu(self, screen, joystick, clock):
@@ -74,7 +69,6 @@ class Intro:
         height_factor = (0.9 * sh) / h
         sf = min(width_factor, height_factor)
         self.menu_image = pygame.transform.smoothscale(self.menu_image, (int(w * sf), int(h * sf)))
-        self.music.play(loops=-1)
         files = os.listdir('tracks')
         track_names = [file[:-len('_miniature.png')] for file in files if file[-len('_miniature.png'):] == '_miniature.png']
         miniatures = [pygame.image.load(os.path.join('tracks', name + '_miniature.png')) for name in track_names]
@@ -111,7 +105,6 @@ class Intro:
             screen.blit(track_text, ((sw * 3 // 4) - (ttw // 2), (sh * 6 // 8)))
             pygame.display.update()
             clock.tick(20)
-        self.music.stop()
         return track_names[active_track]
 
 

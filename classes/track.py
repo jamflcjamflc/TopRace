@@ -167,6 +167,9 @@ class Track:
             pygame.draw.circle(self.image, (255, 0, 0), point, int(self.width) + 2, 2)
         for point in self.track:
             pygame.draw.circle(self.image, (150, 150, 150), point, int(self.width))
+        # mark checkpoints
+        for item in self.checkpoint:
+            pygame.draw.circle(self.image, (160, 160, 160), item, int(self.width / 2))
         # finish line generation
         square = np.array([[0., 0.], [0., 1.], [1., 1.], [1., 0.]])
         f_line = []

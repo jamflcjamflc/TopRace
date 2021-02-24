@@ -15,7 +15,7 @@ class Car:
     instance attributes:
     """
 
-    def __init__(self, rank, index, par, track, screen):
+    def __init__(self, index,  par, track, screen):
         """initializes the class
         a : float (initial angle of the car)
         rank : int (initial rank order of the car)
@@ -52,19 +52,23 @@ class Car:
         self.huv = np.array([1., 0.])  # horizontal unit vector used to rotate the car
         _, _, w, h = screen.get_rect()
         self.res = np.array([float(w), float(h)])
-        self.rank = rank  # initial rank of the car
-        self.color = par.par['car_colors'][index]  # color of the car
+        self.rank = index  # initial rank of the car
+        self.index = index  # index of this car
+        self.color = par.par['car_colors'][self.index]  # color of the car
         self.colors = [self.color] + [(0, 0, 0) for _ in range(6)] + [(0, 0, 255)]  # color for each part of the car
-        self.driver = par.par['driver'][index]
-        self.m = par.par['car_mass'][index]  # mass of this car
+        self.driver = par.par['driver'][self.index]
+        self.m = par.par['car_mass'][self.index]  # mass of this car
         self.lateral_drag = par.par['lateral_drag']
         self.collision_distance = par.par['collision_distance']
         self.collision_constant = par.par['collision_constant']
         self.on_road_drag = par.par['on_road_drag']
         self.off_road_drag = par.par['off_road_drag']
-        self.max_speed = par.par['max_speed'][index]
+        self.max_speed = par.par['max_speed'][self.index]
         self.pos = np.copy(track.track[track.boxes[self.rank]])  # initial position of the car (vector indicating position)
-        self.fwd_index = track.boxes[self.rank] + self.fwd_dist if track.boxes[self.rank] + self.fwd_dist < track.track.shape[0] else track.boxes[self.rank] + self.fwd_dist - track.track.shape[0]
+        if track.boxes[self.rank] + self.fwd_dist < track.track.shape[0]:
+            self.fwd_index = track.boxes[self.rank] + self.fwd_dist
+        else:
+            track.boxes[self.rank] + self.fwd_dist - track.track.shape[0]
         self.fwd_pos = track.track[self.fwd_index]
         self.dir = track.get_vector(track.boxes[self.rank], track.boxes[self.rank] + 1)  # unit vector indicatind the direction of the car
         self.track_size = track.track.shape[0]
@@ -96,6 +100,29 @@ class Car:
         self.orientation = 1  # initial orientation of the car, (for auto-cars, they go with the track)
         self.in_checkpoint = -1  # in in a checkpoint indicates the checkpoint index otherwise -1
 
+    def goto_start(self, rank, track):
+        """positions the car at the start of the race in the position indicated by rank
+        rank: int: initial rank for this car
+        track: instance of Track class"""
+        self.rank = rank
+        self.current_check = 0
+        self.next_check = 0
+        self.last_time = time.time()  # this is the time to start counting a lap
+        self.n_laps = - 1  # number of laps run
+        self.this_lap = 0.0  # time taken to run this lap
+        self.last_lap = 0.0  # time taken to run last lap
+        self.best_lap = 10000.0  # time of best lap
+        self.v = np.array([0., 0.])  # current velocity
+        self.v_l = np.array([0., 0.])  # longitudinal velocity
+        self.v_n = np.array([0., 0.])  # normal velocity
+        self.pos = np.copy(track.track[track.boxes[self.rank]])
+        if track.boxes[self.rank] + self.fwd_dist < track.track.shape[0]:
+            self.fwd_index = track.boxes[self.rank] + self.fwd_dist
+        else:
+            track.boxes[self.rank] + self.fwd_dist - track.track.shape[0]
+        self.fwd_pos = track.track[self.fwd_index]
+        self.dir = track.get_vector(track.boxes[self.rank], track.boxes[self.rank] + 1)
+
     def get_closest_index(self, track):
         """ this function updates the index for the track point that is the closest to this car
         track: instance of the class Track
@@ -113,9 +140,8 @@ class Car:
             self.fwd_index = self.closest_index - self.fwd_dist if self.closest_index > self.fwd_dist - 1 else self.track_size + self.closest_index - self.fwd_dist
         self.fwd_pos = track.track[self.fwd_index]
 
-    def get_orientation(self, track):
+    def get_orientation(self):
         """updates the orientation parameter, +1 if forward, -1 if backward
-        track : dictionary of lists of tuples
         returns None"""
         if self.next_check == 0:  # next checkpoint is 0
             if self.track_size - self.closest_index < self.track_size // 2:  # going forward is shorter
@@ -124,50 +150,39 @@ class Car:
                 self.orientation = -1
         else:  # next checkpoint is not 0
             if self.checkpoint_index[self.next_check] > self.closest_index:  # next checkpoint is ahead
-                if self.rank == 0:
-                    print ('index_dif', self.checkpoint_index[self.next_check] - self.closest_index)
                 if self.checkpoint_index[self.next_check] - self.closest_index < self.track_size // 2:  # going forward is shorter
                     self.orientation = 1
                 else:  # is shorter going backwards
                     self.orientation = -1
             else:  # next checkpoint is behind
-                if self.rank == 0:
-                    print('checkpoint indexes', self.checkpoint_index)
-                    print ('index_dif', self.checkpoint_index[self.next_check] - self.closest_index)
-                    print('next_checkpoint_index', self.checkpoint_index[self.next_check])
-                    print('closest_index', self.closest_index)
                 if self.closest_index - self.checkpoint_index[self.next_check] < self.track_size // 2:  # it is shorter going backward
                     self.orientation = -1
                 else:  # it is shorter going forward
                     self.orientation = 1
-        if self.rank == 0:
-            print('orientation', self.orientation)
-            print('next_check', self.next_check)
-            print('in_chek', self.in_checkpoint)
-            print()
 
     def calculate_force(self, command, cars):
         """ this calculates the force that is the sum of all forces affecting the car, and also its new direction
         command : tuple of float (external force)
         cars : list of instances of car Class
         """
-        #todo force is oscilating and fwd_index and closest_index do not change. Find out what happens
         if command is None:  # the car drives automatically, we calculate self command before going on
             fwd_vector = self.fwd_pos - self.pos
             self.command = self.max_speed * fwd_vector / np.linalg.norm(fwd_vector)
         else:  # the command is received so the car does not run automatically
             self.command = self.max_speed * np.array(command)  # gets the command
+
         self.scalar_command = np.linalg.norm(self.command)
-        # if the axe is close to the center the car direction does not change and no force is applied
+        # if the joy axes are close to the center the car direction does not change and no force is applied
         if self.scalar_command < 0.1:
             self.command = np.array([0., 0.])
             self.scalar_command = 0.0
-            # self.v_l and self.v_n are kept as they were before
+            # self.dir is maintained unchanged
         else:
-            self.dir = self.command / self.scalar_command
-            # this part calculates the normal drag force. Remember that selc.scalar_command is not 0. by definition
-            self.v_l = self.command * np.dot(self.v, self.command) / self.scalar_command  # longitudinal force
-            self.v_n = self.v - self.v_l  # normal force: selv.v_n +`self.v_l must be self.v
+            self.dir = self.command / self.scalar_command  # unit vector in the direction of the car
+        # this part calculates the normal drag force. Remember that selc.scalar_command is not 0. by definition
+        self.v_l = self.dir * np.dot(self.v, self.dir)  # longitudinal velocity
+        self.v_n = self.v - self.v_l  # normal velocity
+        # calculates the force
         self.f_n = - self.v_n * self.lateral_drag
         # calculate the longitudinal drag and the longitudinal drag force
         if self.on_road:
@@ -179,8 +194,8 @@ class Car:
         for car in cars:
             collision_vector = self.pos - car.pos
             distance = np.linalg.norm(collision_vector)
-            collision_vector /= distance
             if self.collision_distance > distance > 0.1:  # this ensures a car does not crash into itself
+                collision_vector /= distance
                 self.f_c += collision_vector * min(1., self.collision_distance - distance) * self.collision_constant
         self.f = self.f_c + self.f_l + self.f_n + self.command
 
@@ -204,6 +219,14 @@ class Car:
         points = self.pos.reshape(1, 2) + np.dot(self.points, rot_matrix.T)
         for i, part in enumerate(self.parts):
             pygame.draw.polygon(screen, self.colors[i], np.take(points, part, axis=0))
+        return screen
+
+    def draw_checkpoint(self, screen):
+        """draws the checkpoint in the screeen if required
+        screen: pygame canvas instance
+        returns: screen: pygame canvas instance"""
+        if self.in_checkpoint > -1:
+            pygame.draw.circle(screen, self.color, self.checkpoint[self.in_checkpoint], int(self.track_width))
         return screen
 
     def calculate_loops(self, par, track, cars):
@@ -249,7 +272,7 @@ class Car:
         par: Parameters instance"""
         self.get_closest_index(track)
         self.calculate_loops(par, track, cars)
-        self.get_orientation(track)
+        self.get_orientation()
         self.calculate_force(command, cars)
         self.calculate_new_pos()
 
