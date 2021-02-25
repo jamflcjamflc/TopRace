@@ -18,6 +18,7 @@ from classes.scoreboard import ScoreBoard
 from classes.race import Race
 from classes.countdown import Countdown
 from classes.display_result import DisplayResult
+from classes.wrapup import Wrapup
 
 
 # positions the screen in a specific position of the monitor
@@ -30,6 +31,7 @@ def initiallize_game(n_joys):
     # todo code the parameters used soft instead of hard
     countdown = Countdown()
     result_displayer = DisplayResult()
+    wrapup = Wrapup(wrapup_image=os.path.join('images', 'wrapup.png'))
     race = Race(os.path.join('resources', 'log.log'))
     screen = pygame.display.set_mode((1200, 800))
     intro = Intro(cover_image=os.path.join('images', 'main_cover.png'),
@@ -39,7 +41,7 @@ def initiallize_game(n_joys):
     music.set_volume(0.3)
     noise = pygame.mixer.Sound(os.path.join('sounds', 'background.wav'))
     noise.set_volume(0.3)
-    return screen, intro, announcements, music, noise, countdown, race, result_displayer
+    return screen, intro, announcements, music, noise, countdown, race, result_displayer, wrapup
 
 def create_cars(par, track, screen):
     """creates the list of cars
@@ -59,12 +61,13 @@ if __name__ == '__main__':
     joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
     for joystick in joysticks:
         joystick.init()
-    screen, intro, announcements, music, noise, countdown, race, result_displayer = initiallize_game(len(joysticks))
+    screen, intro, announcements, music, noise, countdown, race, result_displayer, wrapup = initiallize_game(len(joysticks))
     _, _, w, h = screen.get_rect()
     clock = pygame.time.Clock()
     # read the parameters file
     parameters = Parameters(path=os.path.join('resources', 'par.ini'))
-    if True:  # make a loop here
+    output = 'new_game'
+    while output == 'new_game':  # make a loop here
         # Run the intro, select the track and prepare the track image
         music.play(loops=-1)
         intro.run_intro(screen, clock)
@@ -84,6 +87,7 @@ if __name__ == '__main__':
         cars = countdown.run_countdown('race', screen, track, cars, clock)
         cars = race.run_race('race', screen, track, cars, scoreboard, announcements, joysticks, parameters, clock)
         result_displayer.run_results('race', screen, track, cars, clock)
+        output = wrapup.run_wrapup(screen, joysticks[0], clock)
         music.stop()
         noise.stop()
 
