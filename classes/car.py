@@ -252,8 +252,8 @@ class Car:
                 self.last_lap = self.this_lap
                 self.last_time = time.time()
                 if self.last_lap < min([car.best_lap for car in cars]):
-                    this_announcement = 'Best lap:  ' + str(round(self.best_lap, 2)) + ' sec'
                     self.best_lap = self.last_lap
+                    this_announcement = 'Best lap:  ' + str(round(self.best_lap, 2)) + ' sec'
                 elif self.last_lap < self.best_lap:  # the lap has not completed with record
                     self.best_lap = self.last_lap
                     this_announcement = 'Best personal lap:  ' + str(round(self.best_lap, 2)) + ' sec'
@@ -275,8 +275,6 @@ class Car:
         self.get_orientation()
         self.calculate_force(command, cars)
         self.calculate_new_pos()
-
-
 
 
 if __name__ == '__main__':

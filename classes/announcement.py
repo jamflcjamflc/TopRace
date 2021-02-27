@@ -11,6 +11,11 @@ version = 'announcement.v.1.0.0'
 class Announcement:
 
     def __init__(self, screen=None, text='', time=5, color=(255, 0, 0)):
+        """initiallizes the Announcement instance
+        screen: pygame canvas instance
+        text: str
+        time: int (number of frames during which the announcement will be active
+        color: color of the text"""
         _, _, sw, sh = screen.get_rect()
         self.t = 0
         self.color = color
@@ -24,9 +29,14 @@ class Announcement:
         self.pos = (text_x, text_y)
 
     def update(self, screen):
+        """updates the announcements (whether they are active or not) and blits
+        announcements in the screen
+        screen: pygame canvas instance
+        returns: screen after being updated"""
         self.t += 1
         self.active = self.t <= self.time
         screen.blit(self.text, self.pos)
+        return screen
 
 
 if __name__ == '__main__':

@@ -5,39 +5,65 @@
 
 import pygame
 import os
+from classes.announcement import Announcement
+import time
 
 version = 'race.v.1.0.0'
 
 
 class Race:
 
-    def __init__(self, file):
+    def __init__(self, file, race_type='qualification'):
         """initializes the instance
-        file: filename for the log file"""
+        file: filename for the log file
+        race_type: str: type of race"""
+        self.race_type = race_type
         self.log_file = file
+        self.timestamp = time.asctime(time.gmtime())
         if not os.path.isfile(self.log_file):
             with open(self.log_file, 'w') as f:
-                pass
+                line = 'time_stamp\ttrack\tresolution\tn_laps\ttype\tcar\tbest_lap\trank\n'
+                f.write(line)
 
     def update_announcements(self, screen, announcements):
         """blits announcements and eliminates the ones obsolete
         screen: pygame canvas object
         announcements: list of Announcement instances
-        returns: announcements: list of Announcement instances"""
+        returns: tuple of screen and announcements after being updated"""
         for announcement in announcements:
-            announcement.update(screen)
+            screen = announcement.update(screen)
         announcements = [announcement for announcement in announcements if announcement.active]
-        return announcements
+        return screen, announcements
 
-    def move_cars(self, track, joysticks, cars, par):
-        """moves the cars"""
+    def move_cars(self, screen, track, joysticks, cars, par, announcements):
+        """moves the cars and appends new announcements
+        screen: pygame canvas instance
+        track: instance of Track class
+        joysticks: list of pygame.joystick instances
+        cars: list of instances of Car class
+        par: instance of Parameters class
+        announcements: list of instances of Announcement class
+        returns: tuple of updated cars and announcements"""
+        for i, car in enumerate(cars):
+            cars[i].get_closest_index(track)
+        for i, car in enumerate(cars):
+            this_announcement = cars[i].calculate_loops(par, track, cars)
+            if this_announcement is not None:
+                announcements.append(Announcement(screen=screen,
+                                                  text=this_announcement,
+                                                  time=9,
+                                                  color=car.color))
+        for i, car in enumerate(cars):
+            cars[i].get_orientation()
         for i, car in enumerate(cars):
             if car.index < len(joysticks):
                 command = (joysticks[car.index].get_axis(4), joysticks[car.index].get_axis(3))
-                cars[i].move_car(track, command, cars, par)  # player directed
+                cars[i].calculate_force(command, cars)  # player directed
             else:
-                cars[i].move_car(track, None, cars, par)  # auto directed
-        return cars
+                cars[i].calculate_force(None, cars)  # auto directed
+        for i, car in enumerate(cars):
+            cars[i].calculate_new_pos()
+        return cars, announcements
 
     def draw_cars(self, screen, cars):
         """blits each car in the screen
@@ -49,6 +75,27 @@ class Race:
         for car in cars:
             screen = car.draw_car(screen)
         return screen
+
+    def update_file(self, cars, track):
+        """updates the log file
+        cars: list of instances of Car class"""
+        if self.race_type == 'qualification':
+            cars.sort(key=lambda item: item.best_lap)
+        else:
+            cars.sort(key=lambda item: item.closest_index, reverse=True)
+            cars.sort(key=lambda item: item.n_laps, reverse=True)
+        with open(self.log_file, 'a') as f:
+            for i, car in enumerate(cars):
+                line = ''
+                line += self.timestamp + '\t'
+                line += track.name + '\t'
+                line += str(track.w) + ':' + str(track.h) + '\t'
+                line += str(car.n_laps) + '\t'
+                line += self.race_type + '\t'
+                line += car.driver + '\t'
+                line += str(car.best_lap) + '\t'
+                line += str(i + 1) + '\n'
+                f.write(line)
 
     def run_race(self, mode, screen, track, cars, scoreboard, announcements, joysticks, parameters, clock):
         """runs the race
@@ -71,13 +118,14 @@ class Race:
                     race_exit = True
             screen.fill((255, 255, 255))
             screen.blit(track.image, (0, 0))
-            cars = self.move_cars(track, joysticks, cars, parameters)
+            cars, announcements = self.move_cars(screen, track, joysticks, cars, parameters, announcements)
             result, screen = scoreboard.update(cars, screen, mode)
+            screen, announcements = self.update_announcements(screen, announcements)
             screen = self.draw_cars(screen, cars)
-            announcements = self.update_announcements(screen, announcements)
             pygame.display.update()
             clock.tick(20)
             race_exit = race_exit or result
+        self.update_file(cars, track)
         return cars
 
 

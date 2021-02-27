@@ -13,7 +13,7 @@ from classes.intro import Intro
 from classes.track import Track
 from classes.parameters import Parameters
 from classes.car import Car
-from classes.announcement import Announcement
+
 from classes.scoreboard import ScoreBoard
 from classes.race import Race
 from classes.countdown import Countdown
@@ -32,7 +32,8 @@ def initiallize_game(n_joys):
     countdown = Countdown()
     result_displayer = DisplayResult()
     wrapup = Wrapup(wrapup_image=os.path.join('images', 'wrapup.png'))
-    race = Race(os.path.join('resources', 'log.log'))
+    race1 = Race(os.path.join('data', 'log.log'), race_type='qualification')
+    race2 = Race(os.path.join('data', 'log.log'), race_type='race')
     screen = pygame.display.set_mode((1200, 800))
     intro = Intro(cover_image=os.path.join('images', 'main_cover.png'),
                   menu_image=os.path.join('images', 'track_menu.png'))
@@ -41,7 +42,7 @@ def initiallize_game(n_joys):
     music.set_volume(0.3)
     noise = pygame.mixer.Sound(os.path.join('sounds', 'background.wav'))
     noise.set_volume(0.3)
-    return screen, intro, announcements, music, noise, countdown, race, result_displayer, wrapup
+    return screen, intro, announcements, music, noise, countdown, race1, race2, result_displayer, wrapup
 
 def create_cars(par, track, screen):
     """creates the list of cars
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
     for joystick in joysticks:
         joystick.init()
-    screen, intro, announcements, music, noise, countdown, race, result_displayer, wrapup = initiallize_game(len(joysticks))
+    screen, intro, announcements, music, noise, countdown, race1, race2, result_displayer, wrapup = initiallize_game(len(joysticks))
     _, _, w, h = screen.get_rect()
     clock = pygame.time.Clock()
     # read the parameters file
@@ -82,10 +83,10 @@ if __name__ == '__main__':
         scoreboard = ScoreBoard(track, parameters)
         noise.play(loops=-1)
         cars = countdown.run_countdown('qualification', screen, track, cars, clock)
-        cars = race.run_race('qualification', screen, track, cars, scoreboard, announcements, joysticks, parameters, clock)
+        cars = race1.run_race('qualification', screen, track, cars, scoreboard, announcements, joysticks, parameters, clock)
         result_displayer.run_results('qualification', screen, track, cars, clock)
         cars = countdown.run_countdown('race', screen, track, cars, clock)
-        cars = race.run_race('race', screen, track, cars, scoreboard, announcements, joysticks, parameters, clock)
+        cars = race2.run_race('race', screen, track, cars, scoreboard, announcements, joysticks, parameters, clock)
         result_displayer.run_results('race', screen, track, cars, clock)
         output = wrapup.run_wrapup(screen, joysticks[0], clock)
         music.stop()

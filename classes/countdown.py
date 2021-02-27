@@ -13,9 +13,11 @@ version = 'countdown.v.1.0.0'
 class Countdown:
 
     def __init__(self):
-        style = pygame.font.SysFont('comicsans', 100)
-        self.countlist = [style.render(str(5 - i), False, (0, 0, 255)) for i in range(5)]
-        self.countlist += [style.render('GO', False, (0, 0, 255))]
+        style = pygame.font.SysFont('comicsans', 80)
+        style2 = pygame.font.SysFont('comicsans', 100)
+        style3 = pygame.font.SysFont('comicsans', 130)
+        self.countlist = [style2.render(str(5 - i), False, (0, 0, 255)) for i in range(5)]
+        self.countlist += [style3.render('GO', False, (0, 0, 255))]
         self.race = style.render('Ready for the race', False, (0, 0, 255))
         _, _, w, h = self.race.get_rect()
         self.r_race = (w, h)
@@ -61,14 +63,15 @@ class Countdown:
                 countdown_exit = True
             else:
                 if mode == 'qualification':
-                    screen.blit(self.qualification, (w / 2 - self.r_qualification[0] / 2, h / 2 - self.r_qualification[1] / 2 - 20))
+                    if index < 5:
+                        screen.blit(self.qualification, (w / 2 - self.r_qualification[0] / 2, h / 2 - self.r_qualification[1] / 2 - 20))
                     screen.blit(self.countlist[index], (w / 2, h / 2 + 20))
                 else:
-                    screen.blit(self.race, (w / 2 - self.r_race[0] / 2, h / 2 - self.r_race[1] / 2 - 20))
+                    if index < 5:
+                        screen.blit(self.race, (w / 2 - self.r_race[0] / 2, h / 2 - self.r_race[1] / 2 - 20))
                     screen.blit(self.countlist[index], (w/2, h/2 + 20))
             pygame.display.update()
             clock.tick(20)
-
         return cars
 
 

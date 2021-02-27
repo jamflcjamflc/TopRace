@@ -95,8 +95,8 @@ class Intro:
             old_hat = new_hat
             track_text = self.style.render(track_names[active_track], False, self.color)
             _, _, ttw, tth = track_text.get_rect()
-            track_text = pygame.transform.scale(track_text, ((sw // 4), (tth * sw) // (ttw * 4)))
-            _, _, ttw, tth = track_text.get_rect()
+            #track_text = pygame.transform.scale(track_text, ((sw // 4), (tth * sw) // (ttw * 4)))
+            #_, _, ttw, tth = track_text.get_rect()
             screen.fill((255, 255, 255))
             screen.blit(self.menu_image, ((sw // 4) - (w // 2), (sh - h) // 2))
             #todo buscar un metodo para centrar el track y hacer un blit con el nombre del track

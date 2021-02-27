@@ -26,7 +26,7 @@ def parse_args():
                         must be located in the folder images and namer <--name>.png. 
                         Default: 'montmelo' """,
                         type=str,
-                        default='montmelo')
+                        default='hockenheim')
     parser.add_argument('-mw', '--miniature_width',
                         help="""Width of the miniature image of the track (to be used in the selection menu). 
                         Default: 200 """,
