@@ -18,12 +18,23 @@ class Race:
         file: filename for the log file
         race_type: str: type of race"""
         self.race_type = race_type
-        self.log_file = file
         self.timestamp = time.asctime(time.gmtime())
+        self.log_file = os.path.join('data', 'log.log')
+        if not os.path.isdir('data'):
+            os.mkdir('data')
         if not os.path.isfile(self.log_file):
             with open(self.log_file, 'w') as f:
                 line = 'time_stamp\ttrack\tresolution\tn_laps\ttype\tcar\tbest_lap\trank\n'
                 f.write(line)
+        with open(os.path.join('resources', 'os_mask.ini'), 'r') as f:
+            lines = f.readlines()
+            self.invert_axes = lines[0].rstrip('\r\n').upper() == 'TRUE'
+        if self.invert_axes:
+            self.x_axis = 3
+            self.y_axis = 4
+        else:
+            self.x_axis = 4
+            self.y_axis = 3
 
     def update_announcements(self, screen, announcements):
         """blits announcements and eliminates the ones obsolete
@@ -57,7 +68,7 @@ class Race:
             cars[i].get_orientation()
         for i, car in enumerate(cars):
             if car.index < len(joysticks):
-                command = (joysticks[car.index].get_axis(4), joysticks[car.index].get_axis(3))
+                command = (joysticks[car.index].get_axis(self.x_axis), joysticks[car.index].get_axis(self.y_axis))
                 cars[i].calculate_force(command, cars)  # player directed
             else:
                 cars[i].calculate_force(None, cars)  # auto directed
@@ -130,4 +141,4 @@ class Race:
 
 
 if __name__ == '__main__':
-    print version
+    print(version)

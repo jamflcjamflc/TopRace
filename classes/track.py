@@ -10,7 +10,6 @@ import pickle as pic
 
 version = 'track.v.1.0.0'
 
-
 class Track:
     """The instance of this class controls the creation and usage of the track
     instance attributes:
@@ -233,7 +232,7 @@ class Track:
     def save_track(self):
         """this method saves the track as a picled object containing the tuple of track and checkpoints"""
         object = (self.track, self.checkpoint, self.scoreboard, self.name, self.raw_w, self.raw_h)
-        with open(os.path.join('tracks', self.name + '.pic'), 'w') as f:
+        with open(os.path.join('tracks', self.name + '.pic'), 'wb') as f:
             pic.dump(object, f)
 
     def load_track(self, name):
@@ -243,7 +242,7 @@ class Track:
         npixesls: int representing the separation between points in the track
         npixels:
         """
-        with open(os.path.join('tracks', name + '.pic'), 'r') as f:
+        with open(os.path.join('tracks', name + '.pic'), 'rb') as f:
             object = pic.load(f)
         self.track, self.checkpoint, self.scoreboard, self.name, self.raw_w, self.raw_h = object
 

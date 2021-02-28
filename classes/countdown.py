@@ -79,4 +79,4 @@ class Countdown:
 
 
 if __name__ == '__main__':
-    print version
+    print(version)

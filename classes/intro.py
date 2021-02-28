@@ -84,6 +84,22 @@ class Intro:
                     quit()
                     break
             keep_menu = not joystick.get_button(1)
+            change_config = joystick.get_button(2)
+            if change_config:
+                with open(os.path.join('resources', 'os_mask.ini'), 'r') as f:
+                    lines = f.readlines()
+                    line = lines[0].rstrip('\r\n')
+                    if line.upper() == 'TRUE':
+                        line = 'false\n'
+                    else:
+                        line = 'true\n'
+                with open(os.path.join('resources', 'os_mask.ini'), 'w') as f:
+                    f.write(line)
+                print('os_mask.ini changed to ' + line)
+                keep_menu = False
+                pygame.quit()
+                quit()
+                break
             #scroll through tracks
             new_hat = joystick.get_hat(0)
             if new_hat != old_hat and old_hat == (0, 0) and new_hat[1] == -1:

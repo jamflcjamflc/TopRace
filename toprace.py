@@ -3,9 +3,10 @@
 # main toprace script
 # Alfredo Martin 2021
 
+import os
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d, %d" % (90, 30)  # positions the screen in a specific position of the monitor
 import pygame
 import numpy as np
-import os
 import random
 import argparse
 import time
@@ -34,7 +35,11 @@ def initiallize_game(n_joys):
     wrapup = Wrapup(wrapup_image=os.path.join('images', 'wrapup.png'))
     race1 = Race(os.path.join('data', 'log.log'), race_type='qualification')
     race2 = Race(os.path.join('data', 'log.log'), race_type='race')
-    screen = pygame.display.set_mode((1200, 800))
+    # resizes the screen to the resolution of the monitor
+    x_res, y_res = pygame.display.Info().current_w, pygame.display.Info().current_h
+    screen_width = int(0.9 * x_res)
+    screen_height = int(0.9 * y_res)
+    screen = pygame.display.set_mode((screen_width, screen_height))
     intro = Intro(cover_image=os.path.join('images', 'main_cover.png'),
                   menu_image=os.path.join('images', 'track_menu.png'))
     announcements = []
