@@ -36,7 +36,6 @@ class Intro:
         height_factor = (0.9 * sh) / h
         sf = min(width_factor, height_factor)
         self.intro_image = pygame.transform.smoothscale(self.intro_image, (int(w * sf), int(h * sf)))
-
         _, _, w, h = self.intro_image.get_rect()
         keep_menu = True
         tic = time.time()
@@ -58,7 +57,6 @@ class Intro:
         """screen: pygame display instance
         joystick: pygame joystick instance
         clock: pygame clock instance"""
-
         _, _, sw, sh = screen.get_rect()
         _, _, w, h = self.menu_image.get_rect()
         _, _, tw, th = self.text.get_rect()
@@ -84,7 +82,7 @@ class Intro:
                     quit()
                     break
             keep_menu = not joystick.get_button(1)
-            change_config = joystick.get_button(2)
+            change_config = joystick.get_button(0)
             if change_config:
                 with open(os.path.join('resources', 'os_mask.ini'), 'r') as f:
                     lines = f.readlines()

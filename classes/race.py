@@ -31,9 +31,9 @@ class Race:
             self.invert_axes = lines[0].rstrip('\r\n').upper() == 'TRUE'
         if self.invert_axes:
             self.x_axis = 3
-            self.y_axis = 4
+            self.y_axis = 2
         else:
-            self.x_axis = 4
+            self.x_axis = 2
             self.y_axis = 3
 
     def update_announcements(self, screen, announcements):
