@@ -12,4 +12,5 @@ You need numpy and pygame installed to run this game
 There are a number of tracks provided, but you can create your own tracks. In order to do that open a drawing software such as paint and draw your track as a closed loop line. It is recommended that the canvas in which you draw is about the resolution of your screen, although it is not absolutly required. It is recommended that the line is one pixel thick. The track must be drawn in black (0,0,0) rgb color. Then mark the initial point of the track with a red pixel (255,0,0) and delete one pixel so the initial pixel is connected wiht just one other pixel. This will define the orientation of the race. The checkpoint pixels are marked within the track (use one point in each turn) with a pixel of color (255,0,255) and then mark one point in the canvas that is far from any other pixel in the track so the scorebord will be located there. The color of the scoreboard pixel must be (0,255,0).
 Once you have your drawing save it as .png format and pace it in the tracks folder. Then run the script create_track.py passing the name of the track you just created (without extension) as argument. For example: python create_track.py -na montmelo
 A video with a demo of the game can be found in:
-xxxx
+https://youtu.be/H4wIYIh4_e0
+
